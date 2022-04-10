@@ -417,4 +417,29 @@ close cursor_bookDetails
 deallocate cursor_bookDetails
 
 select *from [dbo].[Book]
+
+
+			------------View in sql----------
+		
+
+
+alter View vWbookByAuthorname
+as
+select book_name,author_name
+from customer
+join Book on customer.book_id = Book.book_id
+
+
+select * from vWbookByAuthorname
+
+
+create view vWSummerizeDataa
+as
+select book_name ,count(*) as Totalbook
+from customer
+join Book on customer.book_id = Book.book_id
+join  Address on customer.Address_id = Address.Address_id
+group by book_name
+
+select * from  vWSummerizeDataa
 	
