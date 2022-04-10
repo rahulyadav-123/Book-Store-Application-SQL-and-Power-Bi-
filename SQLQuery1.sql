@@ -343,4 +343,28 @@ end
 exec sp_getbookdata
 
 
+			---------------function with  stored procedure-------------
+
+alter function Fn_Order_Details_With_Condition
+(
+@order_id int,
+@Book_ID int
+)      
+returns table       
+as      
+return(select book.book_name, book.author_name from Book INNER JOIN Orders ON orders.book_id = Book.book_id
+		where orders.order_id between @order_id and @Book_ID)
+		
+
+alter procedure sp_getfunctiondata
+(
+@Order_ID int,
+@Books_ID int
+)
+as
+begin
+select * from  Fn_Order_Details_With_Condition (@Order_ID,@Books_ID)
+end
+exec sp_getfunctiondata 1 ,3
+
 	
