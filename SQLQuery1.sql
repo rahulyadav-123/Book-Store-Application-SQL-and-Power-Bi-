@@ -367,4 +367,54 @@ select * from  Fn_Order_Details_With_Condition (@Order_ID,@Books_ID)
 end
 exec sp_getfunctiondata 1 ,3
 
+---------------Cursor--------
+
+declare  cpucursor cursor 
+for 
+select * from dbo.Address
+
+		-----open cursor---------
+open cpucursor
+fetch next from cpucursor 
+while (@@FETCH_STATUS = 0)
+begin 
+		fetch next from cpucursor
+end
+	-----------close cursor------
+close cpucursor
+			-----finally deallocate the cursor to realese it-------
+deallocate cpucursor
+
+
+
+				------------Cursor-----------
+DECLARE 
+    @book_name varchar(55), 
+    @price int
+DECLARE cursor_bookDetails CURSOR
+FOR SELECT 
+        book_name, 
+        price
+    FROM 
+        dbo.Book;
+		
+			-----open cursor---------
+open cursor_bookDetails
+FETCH NEXT FROM cursor_bookDetails INTO 
+    @book_name,
+    @price;
+
+WHILE @@FETCH_STATUS = 0
+    BEGIN
+        PRINT @book_name + CAST(@price AS varchar);
+        FETCH NEXT FROM cursor_bookDetails INTO 
+            @book_name, 
+            @price;
+    END;
+			-------Closed cursor---------
+close cursor_bookDetails
+			-------Deallaocate cursor---------
+deallocate cursor_bookDetails
+
+select *from [dbo].[Book]
 	
