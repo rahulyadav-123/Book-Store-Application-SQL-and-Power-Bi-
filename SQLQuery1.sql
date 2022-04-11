@@ -459,7 +459,371 @@ BEGIN TRANSACTION book_Transaction
 	
   END TRY
   BEGIN CATCH
-      ROLLBACK TRANSACTION book_Transaction
+      ROLLBACK TRANSACTION book_Transa--------DDL Trigger-----------
+use mydatabase
+go
+create trigger Trgeventgrouptable
+on database
+for DDL_Table_Events
+As
+begin
+print 'Use of Event Group: You cannot create ,alter or drop a table in this database'
+rollback transaction
+end
+create table tester
+(id int)
+drop table test3
+drop table demo1
+
+
+			---------Audit trigger--------
+use mydatabase
+SELECT name FROM master.sys.databases
+create table TableAudit1
+(
+DatabaseName nvarchar(250),
+TableName nvarchar(250),
+EventType nvarchar(250),
+LoginName nvarchar(250),
+SQLCommand nvarchar(2500),
+AuditDateTime datetime
+)
+
+alter trigger trgAuditTableChangesInAll
+on ALL SERVER
+FOR CREATE_table,ALTER_TABLE,DROP_TABLE
+AS
+BEGIN
+DECLARE @EventData XML
+SELECT @EventData=EVENTDATA()
+insert into mydatabase.dbo.TableAudit1
+(DatabaseName,TableName,EventType,LoginName,SQLCommand,AuditDateTime)
+values(@EventData.value('(/EVENT_INSTANCE/DatabaseName)[1]','varchar(250)'),
+@EventData.value('(/EVENT_INSTANCE/TableName)[1]','varchar(250)'),
+@EventData.value('(/EVENT_INSTANCE/EventType)[1]','varchar(250)'),
+@EventData.value('(/EVENT_INSTANCE/LoginName)[1]','varchar(250)'),
+@EventData.value('(/EVENT_INSTANCE/TSQLCommand)[1]','varchar(2500)'),
+GetDate()
+)
+END
+
+create table sample11
+(id int)
+drop table sample
+
+
+			---------DML Trigger--------
+use mydatabase
+go
+create table [dbo]. employee1(
+[Emp_ID] [Int] identity (1,1) primary key,
+[Emp_Name] [varchar](100) Not null,
+[Emp_sal] [decimal](10,2) Not null,
+[Emp_DOB] [datetime] Not null,
+[Emp_Experiance] [int] Not null,
+[REcord_Datetime] [datetime] Not null)
+
+create trigger [dbo].[trgafterInsert] on [dbo].[employee1]
+after insert
+as
+declare @emp_dob varchar(50);
+declare @age int;
+declare @emp_experince int;
+
+select @emp_dob=i.Emp_DOB from inserted i;
+select @emp_experince=i.Emp_Experiance from inserted i;
+
+		--Employee age must not have above 25 yrs----
+set @age=YEAR(getdate())-year(@emp_dob);
+if @age > 25
+	begin
+	print 'Not Eligible: Age is greater than 25'
+	Rollback
+	end
+		---Employee should have more than 6 yrs experiance---
+else if @emp_experince < 6
+	begin
+	print 'Not Eligible: Experiance is less than 6'
+	Rollback
+	end
+else
+	begin
+	print 'Employee details inserted succesfully'
+	end
+select * from employee1		
+insert into employee1(Emp_Name,Emp_sal,Emp_DOB,Emp_Experiance,REcord_Datetime)
+values('rahul',4000,'1998-03-02',7,GETDATE())
+
+insert into employee1(Emp_Name,Emp_sal,Emp_DOB,Emp_Experiance,REcord_Datetime)
+values('rakhi',5000,'1997-03-02',7,GETDATE())
+
+insert into employee1(Emp_Name,Emp_sal,Emp_DOB,Emp_Experiance,REcord_Datetime)
+values('rahul',4000,'1990-03-02',7,GETDATE())
+
+
+create table employeehistory
+(
+	Emp_id int not null,
+	field_name varchar (100) not null,
+	old_value varchar (100) not null,
+	new_value varchar (100) not null,
+	record_datetime datetime not null
+)
+
+create trigger trgafterupdate on employee1
+after update 
+as
+declare @emp_id int 
+declare @emp_name varchar(100)
+declare @old_empname varchar(100)
+declare @emp_salary decimal (10,2)
+declare @old_emp_salary decimal (10,2)
+
+select @emp_id=i.Emp_id from inserted i
+select @emp_name=i.Emp_Name from inserted i
+select @old_empname=i.Emp_Name from deleted i
+select @emp_salary=i.Emp_sal from inserted i
+select @old_emp_salary=i.Emp_sal from deleted i
+
+if update (Emp_Name)
+begin
+insert into employeehistory(Emp_id,field_name,old_value,new_value,record_datetime)values
+(@emp_id,'Emp_Name',@old_empname,@emp_name,GETDATE())
+end
+if update (Emp_sal)
+begin
+Insert into employeehistory(Emp_id,field_name,old_value,new_value,record_datetime)values
+(@emp_id,'Emp_sal',@old_emp_salary,@emp_salary,GETDATE())
+end
+
+----Before update---
+select * from employee1
+update employee1 set Emp_Name='roshani' where Emp_ID=7
+
+----After update-----
+select * from employee1
+select * from employeehistory
+
+
+create table employeebackup
+(
+[Emp_ID] [Int] not null,
+[Emp_Name] [varchar](100) Not null,
+[Emp_sal] [decimal](10,2) Not null,
+[Emp_DOB] [datetime] Not null,
+[Emp_Experiance] [int] Not null,
+[REcord_Datetime] [datetime] Not null)
+drop table employeebackup
+alter trigger [dbo].[trgafterdelete] on [dbo].[employee1]
+after delete
+as
+declare @emp_id int
+declare @emp_name varchar(100)
+declare @emp_sal decimal(10,2)
+declare @emp_dob varchar(100)
+declare @age int
+declare @emp_experiance int
+
+select @emp_id=i.Emp_ID from deleted i
+select @emp_name=i.Emp_Name from deleted i
+select @emp_sal=i.Emp_sal from deleted i
+select @emp_dob=i.Emp_DOB from deleted i
+select @emp_experiance=i.Emp_Experiance from deleted i
+
+insert into employeebackup(emp_id,emp_name,emp_sal,emp_dob,emp_experiance,record_datetime)values
+(@emp_id,@emp_name,@emp_sal,@emp_dob,@emp_experiance,GETDATE())
+
+print 'Emloyee detail inserted succesfully'
+
+-----Before delete---
+select * from employee1
+delete from employee1 where Emp_ID=5
+----After delete----
+select * from employee1
+Select * from employeebackupction
   END CATCH  
     Select @@TRANCOUNT As TransactionCount
 	select * from Book
+
+--------DDL Trigger-----------
+use mydatabase
+go
+create trigger Trgeventgrouptable
+on database
+for DDL_Table_Events
+As
+begin
+print 'Use of Event Group: You cannot create ,alter or drop a table in this database'
+rollback transaction
+end
+create table tester
+(id int)
+drop table test3
+drop table demo1
+
+
+			---------Audit trigger--------
+use mydatabase
+SELECT name FROM master.sys.databases
+create table TableAudit1
+(
+DatabaseName nvarchar(250),
+TableName nvarchar(250),
+EventType nvarchar(250),
+LoginName nvarchar(250),
+SQLCommand nvarchar(2500),
+AuditDateTime datetime
+)
+
+alter trigger trgAuditTableChangesInAll
+on ALL SERVER
+FOR CREATE_table,ALTER_TABLE,DROP_TABLE
+AS
+BEGIN
+DECLARE @EventData XML
+SELECT @EventData=EVENTDATA()
+insert into mydatabase.dbo.TableAudit1
+(DatabaseName,TableName,EventType,LoginName,SQLCommand,AuditDateTime)
+values(@EventData.value('(/EVENT_INSTANCE/DatabaseName)[1]','varchar(250)'),
+@EventData.value('(/EVENT_INSTANCE/TableName)[1]','varchar(250)'),
+@EventData.value('(/EVENT_INSTANCE/EventType)[1]','varchar(250)'),
+@EventData.value('(/EVENT_INSTANCE/LoginName)[1]','varchar(250)'),
+@EventData.value('(/EVENT_INSTANCE/TSQLCommand)[1]','varchar(2500)'),
+GetDate()
+)
+END
+
+create table sample11
+(id int)
+drop table sample
+
+
+			---------DML Trigger--------
+use mydatabase
+go
+create table [dbo]. employee1(
+[Emp_ID] [Int] identity (1,1) primary key,
+[Emp_Name] [varchar](100) Not null,
+[Emp_sal] [decimal](10,2) Not null,
+[Emp_DOB] [datetime] Not null,
+[Emp_Experiance] [int] Not null,
+[REcord_Datetime] [datetime] Not null)
+
+create trigger [dbo].[trgafterInsert] on [dbo].[employee1]
+after insert
+as
+declare @emp_dob varchar(50);
+declare @age int;
+declare @emp_experince int;
+
+select @emp_dob=i.Emp_DOB from inserted i;
+select @emp_experince=i.Emp_Experiance from inserted i;
+
+		--Employee age must not have above 25 yrs----
+set @age=YEAR(getdate())-year(@emp_dob);
+if @age > 25
+	begin
+	print 'Not Eligible: Age is greater than 25'
+	Rollback
+	end
+		---Employee should have more than 6 yrs experiance---
+else if @emp_experince < 6
+	begin
+	print 'Not Eligible: Experiance is less than 6'
+	Rollback
+	end
+else
+	begin
+	print 'Employee details inserted succesfully'
+	end
+select * from employee1		
+insert into employee1(Emp_Name,Emp_sal,Emp_DOB,Emp_Experiance,REcord_Datetime)
+values('rahul',4000,'1998-03-02',7,GETDATE())
+
+insert into employee1(Emp_Name,Emp_sal,Emp_DOB,Emp_Experiance,REcord_Datetime)
+values('rakhi',5000,'1997-03-02',7,GETDATE())
+
+insert into employee1(Emp_Name,Emp_sal,Emp_DOB,Emp_Experiance,REcord_Datetime)
+values('rahul',4000,'1990-03-02',7,GETDATE())
+
+
+create table employeehistory
+(
+	Emp_id int not null,
+	field_name varchar (100) not null,
+	old_value varchar (100) not null,
+	new_value varchar (100) not null,
+	record_datetime datetime not null
+)
+
+create trigger trgafterupdate on employee1
+after update 
+as
+declare @emp_id int 
+declare @emp_name varchar(100)
+declare @old_empname varchar(100)
+declare @emp_salary decimal (10,2)
+declare @old_emp_salary decimal (10,2)
+
+select @emp_id=i.Emp_id from inserted i
+select @emp_name=i.Emp_Name from inserted i
+select @old_empname=i.Emp_Name from deleted i
+select @emp_salary=i.Emp_sal from inserted i
+select @old_emp_salary=i.Emp_sal from deleted i
+
+if update (Emp_Name)
+begin
+insert into employeehistory(Emp_id,field_name,old_value,new_value,record_datetime)values
+(@emp_id,'Emp_Name',@old_empname,@emp_name,GETDATE())
+end
+if update (Emp_sal)
+begin
+Insert into employeehistory(Emp_id,field_name,old_value,new_value,record_datetime)values
+(@emp_id,'Emp_sal',@old_emp_salary,@emp_salary,GETDATE())
+end
+
+----Before update---
+select * from employee1
+update employee1 set Emp_Name='roshani' where Emp_ID=7
+
+----After update-----
+select * from employee1
+select * from employeehistory
+
+
+create table employeebackup
+(
+[Emp_ID] [Int] not null,
+[Emp_Name] [varchar](100) Not null,
+[Emp_sal] [decimal](10,2) Not null,
+[Emp_DOB] [datetime] Not null,
+[Emp_Experiance] [int] Not null,
+[REcord_Datetime] [datetime] Not null)
+drop table employeebackup
+alter trigger [dbo].[trgafterdelete] on [dbo].[employee1]
+after delete
+as
+declare @emp_id int
+declare @emp_name varchar(100)
+declare @emp_sal decimal(10,2)
+declare @emp_dob varchar(100)
+declare @age int
+declare @emp_experiance int
+
+select @emp_id=i.Emp_ID from deleted i
+select @emp_name=i.Emp_Name from deleted i
+select @emp_sal=i.Emp_sal from deleted i
+select @emp_dob=i.Emp_DOB from deleted i
+select @emp_experiance=i.Emp_Experiance from deleted i
+
+insert into employeebackup(emp_id,emp_name,emp_sal,emp_dob,emp_experiance,record_datetime)values
+(@emp_id,@emp_name,@emp_sal,@emp_dob,@emp_experiance,GETDATE())
+
+print 'Emloyee detail inserted succesfully'
+
+-----Before delete---
+select * from employee1
+delete from employee1 where Emp_ID=5
+----After delete----
+select * from employee1
+Select * from employeebackup
