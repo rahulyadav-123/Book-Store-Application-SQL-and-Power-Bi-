@@ -15,8 +15,8 @@ create table Book
 		)
 	select * from Book
 	
-	insert into Book(book_name,author_name,price,rating,book_image,quantity,registered_date)values('As a man thinketh','james allen',97,'5','https://images-eu.ssl-images-amazon.com/images/I/51eyNnHQyDL._SX198_BO1,204,203,200_QL40_FMwebp_.jpg','10',GETDATE())
-	insert into Book(book_name,author_name,price,rating,book_image,quantity,registered_date)values('Greatest comedies of shakespare','William Shakespare',218,'4.5','https://images-na.ssl-images-amazon.com/images/I/51nXWvfeOFS._SX460_BO1,204,203,200_.jpg','9',GETDATE())
+	insert into Book(book_name,author_name,price,rating,book_image,quantity,registered_date,Book_category)values('As a man thinketh','james allen',97,'5','https://images-eu.ssl-images-amazon.com/images/I/51eyNnHQyDL._SX198_BO1,204,203,200_QL40_FMwebp_.jpg','10',GETDATE(),'Self-help ')
+	insert into Book(book_name,author_name,price,rating,book_image,quantity,registered_date,)values('Greatest comedies of shakespare','William Shakespare',218,'4.5','https://images-na.ssl-images-amazon.com/images/I/51nXWvfeOFS._SX460_BO1,204,203,200_.jpg','9',GETDATE())
 	insert into Book(book_name,author_name,price,rating,book_image,quantity,registered_date)values('Worlds Greatest classic','Emily Bronte',118,'3.5','https://images-na.ssl-images-amazon.com/images/I/51eyNnHQyDL._SX451_BO1,204,203,200_.jpg','5',GETDATE())
 	insert into Book(book_name,author_name,price,rating,book_image,quantity,registered_date)values('The best of sherlock Homes','Sherlock Homes',500,'4.8','https://images-na.ssl-images-amazon.com/images/I/41LS+soxz5L._SX258_BO1,204,203,200_.jpg','6',GETDATE())
 	insert into Book(book_name,author_name,price,rating,book_image,quantity,registered_date)values('Farside','Jaishankar Krishnamurthy',455,'3.8','https://images-eu.ssl-images-amazon.com/images/I/41gIJPqpHrL._SY264_BO1,204,203,200_QL40_FMwebp_.jpg','3',GETDATE())
@@ -26,7 +26,9 @@ create table Book
 	update Book set author_name='Robert kiyosaki' where book_id=2
 	update Book set rating='4.9' where book_id=2
 	update Book set book_image='https://images-eu.ssl-images-amazon.com/images/I/51u8ZRDCVoL._SY264_BO1,204,203,200_QL40_FMwebp_.jpg' where book_id=2
-
+	update Book set Book_category='Contemporary romance'where book_id=11
+	delete from Book where book_id=21
+	alter table Book add Book_category varchar(225)
 	create table Address
 	(	
 		Address_id int identity(1,1) primary key,
@@ -117,6 +119,22 @@ create table orders
 	 insert into orders (book_id,customer_id) values(3,3)
 	 select * from orders
 
+	 create table sales
+	 (
+		sales_id int identity primary key,
+		book_id int,
+		sales_price int,
+		Book_category varchar (225),
+		)
+		select * from sales
+		select * from Book
+	insert into sales(book_id,sales_price,Book_category)values(1,100,'comedy')
+	insert into sales(book_id,sales_price,Book_category)values(2,200,'self help')
+	insert into sales(book_id,sales_price,Book_category)values(3,250,'Literature & Fiction.')
+	insert into sales(book_id,sales_price,Book_category)values(4,300,'Mystery')
+	insert into sales(book_id,sales_price,Book_category)values(5,400,'crime Thriller')
+	insert into sales(book_id,sales_price,Book_category)values(6,550,'thriller')
+	insert into sales(book_id,sales_price,Book_category)values(7,700,'Contemporary romance')
 
 
 
@@ -457,7 +475,7 @@ BEGIN TRANSACTION book_Transaction
       UPDATE Book
       SET book_name = 'comedy' ,price = 111
       WHERE book_name = 'Rich dad Poor dad'
-	  DELETE FROM Book WHERE book_id = 15
+	  DELETE FROM Book WHERE book_id = 20
 	  Select @@TRANCOUNT As TransactionCount
       COMMIT TRANSACTION book_Transaction
 	
