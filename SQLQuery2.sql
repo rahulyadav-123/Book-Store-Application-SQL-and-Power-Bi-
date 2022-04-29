@@ -56,6 +56,40 @@ select top 2 percent * from Churn_Modelling
 
 
 
+		-------cursor-------
+DECLARE 
+    @surname varchar(50),
+    @Balance float
+DECLARE cursor_Modeling CURSOR
+FOR SELECT 
+        Surname, 
+        Balance 
+    FROM 
+        dbo.Churn_Modelling where CAST(Balance as float)=0 or  CAST(Balance as float) >0
+
+
+-----open cursor---------
+open cursor_Modeling
+FETCH NEXT FROM cursor_Modeling INTO 
+    @surname,
+    @Balance
+
+WHILE @@FETCH_STATUS = 0
+    BEGIN
+        PRINT @Surname + CAST(@Balance AS varchar)
+        FETCH NEXT FROM cursor_Modeling INTO 
+            @Surname, 
+            @Balance;
+    END;
+
+	
+			-------Closed cursor---------
+close cursor_Modeling
+			-------Deallaocate cursor---------
+deallocate cursor_Modeling
+
+
+
 
 					---------------Search Modeling Data Using Stored procedure---------
 create procedure SP_Searchdata
@@ -98,6 +132,17 @@ BEGIN TRANSACTION Modeling_Transaction
     Select @@TRANCOUNT As TransactionCount
 
 	select * from Churn_Modelling
+
+	select * from sys.sysprocesses
+	
+	select * from sys.dm_tran_active_transactions
+
+	select @@FETCH_STATUS from Modeling_Transaction
+
+	
+
+
+
 
 
 				-----------Database status----------------
@@ -265,7 +310,7 @@ Declare @result decimal
 select @result= sum(CAST(EstimatedSalary as decimal)) from Churn_Modelling   where  Geography=@Geo and Gender=@Gender group by Geography
 
 RETURN @result
-END
+ENDyoo
 
 select dbo.Getdata('france','Female')
 
